@@ -9,7 +9,7 @@ import (
 
 func main() {
 	var urls []string
-MainLoop:
+
 	for {
 		fmt.Print(`
 		What do you want to do?
@@ -32,7 +32,7 @@ MainLoop:
 			}
 			fetch(urls)
 		case "exit":
-			break MainLoop
+			return
 		default:
 			println("No such option")
 		}
