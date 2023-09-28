@@ -8,21 +8,22 @@ import (
 )
 
 var wg = sync.WaitGroup{}
-var m = sync.Mutex{}
-var results = []string{}
 
 func fetch(urls []string) {
+	channel := make(chan string)
 	for _, url := range urls {
 		wg.Add(1)
-		go getResponse(url)
+		go getResponse(url, channel)
+	}
+	fmt.Println()
+	for i := 0; i < len(urls); i++ {
+		fmt.Printf(<-channel)
 	}
 	wg.Wait()
-	for _, res := range results {
-		fmt.Printf(res[:100], "\n")
-	}
+	close(channel)
 }
 
-func getResponse(url string) {
+func getResponse(url string, c chan string) {
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err)
@@ -36,9 +37,7 @@ func getResponse(url string) {
 		wg.Done()
 		return
 	}
-	m.Lock()
-	fmt.Printf("%v done!", url)
-	results = append(results, string(body))
-	m.Unlock()
+	info := getContentInfo(string(body), url)
+	c <- info.toStr() + "\n"
 	wg.Done()
 }
